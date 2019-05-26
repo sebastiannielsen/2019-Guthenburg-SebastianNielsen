@@ -153,7 +153,7 @@ sub weight() {
 	return(int($r), int($g), int($b));
 }
 
-#Function that cleans a OpenAid CSV from erronous and bad quality data
+#Function that loads and cleans a OpenAid CSV from erronous and bad quality data
 sub scrubfile() {
 	$filename = $_[0];
 	%totalsum = ();
