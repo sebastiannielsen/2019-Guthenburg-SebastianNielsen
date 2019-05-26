@@ -5,21 +5,24 @@ use POSIX 'strftime';
 use GD;
 use Locale::Country;
 
+#Load parameters from the browser
 $filename = param('filename');
 $invert = param('invert');
 $i = param('image');
 
+#Prevent all and any form of caching, so the user don't get stale data
 print "Expires: Sat, 26 Jul 1997 05:00:00 GMT\n";
 print "Last-Modified: ".strftime('%a, %d %b %Y %H:%M:%S GMT', gmtime)."\n";
 print "Pragma: no-cache\n";
 print "Cache-Control: private, no-cache, no-store, must-revalidate, max-age=0, pre-check=0, post-check=0\n";
 
+#If user don't request a image, send the HTML page
 if ($i ne "1") {
 	print "Content-Type: text/html\n\n";
 	print "<html><head><title>OpenHack SIDA Project</title></head><body>";
 	print "<form><select name='filename'>";
 	opendir(DIR, "openaid");
-	while ($file = readdir(DIR)) {
+	while ($file = readdir(DIR)) { #Load all CSV files into a <select>
 		next if ($file =~ m/^\./);
 		if ($filename eq $file) {
 			print "<option value='".$file."' selected>".$file."</option>";
@@ -41,9 +44,10 @@ if ($i ne "1") {
 	print "</body></html>";
 }
 
+#If filename has been given (selected) and user is requesting a image.
 if (($filename)&&($i eq "1")) {
 
-	open(CFILE, "data.txt");
+	open(CFILE, "data.txt"); #Load country data (with country name + image coordinate)
 	flock(CFILE,1);
 	@content = <CFILE>;
 	close(CFILE);
@@ -59,7 +63,7 @@ if (($filename)&&($i eq "1")) {
 		}
 	}
 
-	open(CPIFILE, "cpi.csv");
+	open(CPIFILE, "cpi.csv"); #Load corruption perception index file
 	@cpidata = <CPIFILE>;
 	close(CPIFILE);
 
@@ -74,6 +78,7 @@ if (($filename)&&($i eq "1")) {
 
 	%sums = scrubfile($filename);
 
+	#Create a score of 0-100 (0r 100-0 if inverted is chosen) from low to high donations of money.
 	$highestsum = 0;
 	%weights = ();
 
@@ -95,6 +100,7 @@ if (($filename)&&($i eq "1")) {
 		}
 	}
 
+	#Create a 0-100 score out of corruption index. This is mainly done because if a small CSV source is set, it can be good to spread out the values a bit.
 	$highestcpi = 0;
 	%cpiweights = ();
 
@@ -109,21 +115,22 @@ if (($filename)&&($i eq "1")) {
 		$wval = int(($cpitable{$k} / $highestcpi) * 100);
 		$cpiweights{$k} = $wval;
 	}
-
+	#Create the image
 	$image = GD::Image->newFromPng("world.png");
 	foreach $c (keys %weights) {
 		($cname, $cx, $cy) = split(":", $countrytable{$c});
-		($red, $green, $blue) = weight($weights{$c}, $cpiweights{$c});
+		($red, $green, $blue) = weight($weights{$c}, $cpiweights{$c}); #Weight both countries and paint the country according to the scale
 		$lc = $image->colorAllocate($red,$green,$blue);
 		$image->fill($cx,$cy,$lc);
 	}
-	print "Content-Type: image/png\n\n";
+	print "Content-Type: image/png\n\n"; #output the image to browser.
 	binmode(STDOUT);
 	print $image->png;
 
 }
 
-
+#Function that weights 2 values between 0-100 against each other and return a color closer to red or blue for a imbalance,
+#and closer to green for a balance.
 sub weight() {
 	$bowla = $_[0];
 	$bowlb = $_[1];
@@ -145,7 +152,7 @@ sub weight() {
 	return(int($r), int($g), int($b));
 }
 
-
+#Function that cleans a OpenAid CSV from erronous and bad quality data
 sub scrubfile() {
 	$filename = $_[0];
 	%totalsum = ();
@@ -154,35 +161,36 @@ sub scrubfile() {
 	close(TOSCRUB);
 	$finishedline = "";
 	foreach $l (@fcontent) {
-		$l =~ s/\n//sgi;
+		$l =~ s/\n//sgi; #Delete linebreaks, tabs and spaces from the CSV data
 		$l =~ s/\r//sgi;
 		$l =~ s/\t//sgi;
 		$l =~ s/ //sgi;
-		if ($l =~ m/^(D|3),Disbursement,/) {
-			if (length($finishedline) > 0) {
-				$finishedline =~ s/\"([^"]*)\"//sgi;
+		if ($l =~ m/^(D|3),Disbursement,/) { #If we find a new data line, parse the line before completely
+			if (length($finishedline) > 0) { #If we have read in data on previous iterations
+				$finishedline =~ s/\"([^"]*)\"//sgi; #Delete long explanations and organization names from CSV (not interested in them anyways)
 				($gar,$gar,$gar,$dollaramount,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$cc1,$cc2,$gar) = split(",", $finishedline);
-				if ((length($cc1) == 2)&&($cc1 =~ m/^[A-Z]*$/)) {
+				if ((length($cc1) == 2)&&($cc1 =~ m/^[A-Z]*$/)) { #OpenAid data seem to mix Version 1.05 with Version 2.00+, so we need to cater for both
 					$countrycode = $cc1;
 				}
 				else
 				{
 					$countrycode = $cc2;
 				}
-				$countrycode = uc(country_code2code($countrycode,LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3));
-				if ((length($countrytable{$countrycode}) > 1)&&($dollaramount)&&(substr($dollaramount, 0, 1) ne "-")) {
+				$countrycode = uc(country_code2code($countrycode,LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3)); #Convert to 3-digit ISO code as CPI uses 3-digit
+				if ((length($countrytable{$countrycode}) > 1)&&($dollaramount)&&(substr($dollaramount, 0, 1) ne "-")) { #Sort out negative values because money going in the other direction, we are not interested in.
 					$totalsum{$countrycode} = $totalsum{$countrycode} + $dollaramount;
 				}
 			}
-			$finishedline = $l;
+			$finishedline = $l; #Start on a new entry
 		}
 		else
 		{
 			if (length($finishedline) > 0) {
-				$finishedline = $finishedline . $l;
+				$finishedline = $finishedline . $l; #We are still on the old entry, continue reading
 			}
 		}
 	}
+	#Same as in loop, but executed a last time in case we started on a entry but didn't yet finish it, lets finish it here.
 	if (length($finishedline) > 0) {
 		$finishedline =~ s/\"([^"]*)\"//sgi;
 		($gar,$gar,$gar,$dollaramount,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$gar,$cc1,$cc2,$gar) = split(",", $finishedline);
