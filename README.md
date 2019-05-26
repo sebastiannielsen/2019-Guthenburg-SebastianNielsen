@@ -1,4 +1,27 @@
 # openhack
+
+-------------------------------------------------------------------------------------
+
+Team Name: Sebastian Nielsen (working alone)
+
+Chosen Case: SIDA
+
+Short Description: A data laboratory/playground to play around with different datasets to find correlations in a colored map
+
+Applied license: GPLv3
+
+Services used: Transparency International XLS files, OpenAid CSV files
+
+Programming Languages used: Perl
+
+Team Members: Sebastian Nielsen
+
+-------------------------------------------------------------------------------------
+
+Presentation slides not available as this solution will be presented in a "live" version.
+
+-------------------------------------------------------------------------------------
+
 Openhack-2019-Guthenburg. My submission for the "SIDA" challenge.
 
 REQUIRES: A folder called "openaid" containing CSVs from OpenAid. (These can be downloaded on each sector page on OpenAid page)
