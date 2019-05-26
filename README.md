@@ -1,5 +1,5 @@
 # openhack
-Openhack-2019-Guthenburg
+Openhack-2019-Guthenburg. My submission for the "SIDA" challenge.
 
 REQUIRES: A folder called "openaid" containing CSVs from OpenAid.
 
