@@ -29,6 +29,13 @@ While a totally random red/blue scattering, with strong colors, would indicate a
 
 The idea of the whole script is to play around with the data and using human pattern recongnitzionn to find weak/strong correlations/anticorrelations with the data. Of course, the script could be extended with functions for, to example mix different CSV files together.
 
+---------------------------------------------------------------------------------------
+
+NOTE: The map ONLY colors countries that are available in both data sources. Because, the script
+would make NO sense if you don't place anything on one side of the scale. Then you are either only measuring
+corruption index OR donation amount, and then you could aswell use OpenAid or Transparency Internation data
+directly.
+
 *** SECURITY WARNING ***
 
 These scripts are designed to run on a CLOSED webserver NOT available for the public. The scripts aren't secure enough for public use.
