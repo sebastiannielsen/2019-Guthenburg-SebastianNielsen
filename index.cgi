@@ -101,6 +101,7 @@ if (($filename)&&($i eq "1")) {
 	}
 
 	#Create a 0-100 score out of corruption index. This is mainly done because if a small CSV source is set, it can be good to spread out the values a bit.
+	#By using the keys from %sums instead of %cpitable, we exclude countries not available in the chosen dataset from OpenAid.
 	$highestcpi = 0;
 	%cpiweights = ();
 
@@ -177,6 +178,7 @@ sub scrubfile() {
 					$countrycode = $cc2;
 				}
 				$countrycode = uc(country_code2code($countrycode,LOCALE_CODE_ALPHA_2, LOCALE_CODE_ALPHA_3)); #Convert to 3-digit ISO code as CPI uses 3-digit
+				#If country is not available in the CPI table, ignore it.
 				if ((length($countrytable{$countrycode}) > 1)&&($dollaramount)&&(substr($dollaramount, 0, 1) ne "-")) { #Sort out negative values because money going in the other direction, we are not interested in.
 					$totalsum{$countrycode} = $totalsum{$countrycode} + $dollaramount;
 				}
