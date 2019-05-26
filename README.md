@@ -3,7 +3,7 @@ Openhack-2019-Guthenburg. My submission for the "SIDA" challenge.
 
 REQUIRES: A folder called "openaid" containing CSVs from OpenAid.
 
-REQUIRES: cpi.csv, which is the Corrupton Perception Index file (xls) saved as CSV.
+REQUIRES: cpi.csv, which is the Corrupton Perception Index file (xls) saved as CSV. (Just choose save as in excel, then choose CSV. Answer yes to all warnings)
 
 No changes required to the CSVs, the scripts will automatically "scrub" them from any faulty data when loading them.
 
